@@ -1,5 +1,7 @@
 from mcp.server.fastmcp import FastMCP
 
+from servicebus_mcp.tools.list_queues import list_queues
+from servicebus_mcp.tools.list_topics import list_topics
 from servicebus_mcp.tools.peek_messages import peek_messages
 from servicebus_mcp.tools.peek_subscription_messages import peek_subscription_messages
 from servicebus_mcp.tools.purge_queue import purge_queue
@@ -8,6 +10,31 @@ from servicebus_mcp.tools.send_batch import send_batch
 from servicebus_mcp.tools.send_message import send_message
 
 app = FastMCP("servicebus-mcp")
+
+
+@app.tool()
+def servicebus_list_queues(namespace: str) -> str:
+    """List all queues in an Azure Service Bus namespace.
+
+    Returns a sorted JSON array of queue names.
+    The namespace can be given as a short name (e.g. shdapps-dev1-eus2-sbn)
+    or as a fully qualified hostname — the .servicebus.windows.net suffix will
+    be appended automatically if missing.
+    """
+    return list_queues(namespace)
+
+
+@app.tool()
+def servicebus_list_topics(namespace: str, include_subscriptions: bool = False) -> str:
+    """List all topics in an Azure Service Bus namespace.
+
+    Returns a sorted JSON array of topic names. If include_subscriptions is true,
+    returns a JSON object mapping each topic name to a sorted array of its subscription names.
+    The namespace can be given as a short name (e.g. shdapps-dev1-eus2-sbn)
+    or as a fully qualified hostname — the .servicebus.windows.net suffix will
+    be appended automatically if missing.
+    """
+    return list_topics(namespace, include_subscriptions)
 
 
 @app.tool()

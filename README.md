@@ -74,6 +74,25 @@ Restart your MCP client after adding the server. No environment variables are ne
 
 The namespace parameter accepts either a short name (`my-namespace`) or a fully qualified hostname (`my-namespace.servicebus.windows.net`). The `.servicebus.windows.net` suffix is appended automatically if absent.
 
+### `servicebus_list_queues`
+
+List all queues in a Service Bus namespace.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | yes | Service Bus namespace |
+
+Returns a sorted JSON array of queue names.
+
+### `servicebus_list_topics`
+
+List all topics in a Service Bus namespace.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | yes | Service Bus namespace |
+| `include_subscriptions` | boolean | no | If true, returns a map of topic name → sorted array of subscription names (default false) |
+
 ### `servicebus_send_message`
 
 Send a single message to a queue or topic.
