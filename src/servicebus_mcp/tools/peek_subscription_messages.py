@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from azure.core.exceptions import HttpResponseError
+from azure.servicebus import NEXT_AVAILABLE_SESSION
 from azure.servicebus.exceptions import OperationTimeoutError, ServiceBusError
 
 from servicebus_mcp.client import get_client
@@ -16,13 +17,11 @@ def _do_peek(client, topic, subscription, max_count, session_id):
     try:
         with client.get_subscription_receiver(topic, subscription) as receiver:
             return receiver.peek_messages(max_message_count=max_count)
-    except ServiceBusError as e:
-        if "non-sessionful" in str(e):
-            with client.accept_next_session(
-                topic_name=topic, subscription_name=subscription, max_wait_time=10
-            ) as receiver:
-                return receiver.peek_messages(max_message_count=max_count)
-        raise
+    except ServiceBusError:
+        with client.get_subscription_receiver(
+            topic, subscription, session_id=NEXT_AVAILABLE_SESSION, max_wait_time=10
+        ) as receiver:
+            return receiver.peek_messages(max_message_count=max_count)
 
 
 def peek_subscription_messages(

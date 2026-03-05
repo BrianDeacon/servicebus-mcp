@@ -1,6 +1,6 @@
 [project]
 name = "servicebus-mcp"
-version = "0.2.2"
+version = "0.2.3"
 description = "MCP server for sending and inspecting messages on Azure Service Bus"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
