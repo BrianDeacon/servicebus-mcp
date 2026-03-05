@@ -1,3 +1,4 @@
+from datetime import datetime
 from azure.core.exceptions import HttpResponseError
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.exceptions import MessageSizeExceededError, ServiceBusError
@@ -12,12 +13,21 @@ def send_message(
     session_id: str | None = None,
     correlation_id: str | None = None,
     application_properties: dict[str, str] | None = None,
+    scheduled_enqueue_time: str | None = None,
 ) -> str:
+    scheduled_time = None
+    if scheduled_enqueue_time:
+        try:
+            scheduled_time = datetime.fromisoformat(scheduled_enqueue_time.replace("Z", "+00:00"))
+        except ValueError:
+            return "Invalid scheduled_enqueue_time format. Use ISO 8601, e.g. '2026-03-05T10:00:00Z'."
+
     message = ServiceBusMessage(
         body,
         session_id=session_id,
         correlation_id=correlation_id,
         application_properties=application_properties or {},
+        scheduled_enqueue_time_utc=scheduled_time,
     )
 
     try:
@@ -31,4 +41,6 @@ def send_message(
     except ServiceBusError as e:
         return f"Service Bus error: {e}"
 
+    if scheduled_time:
+        return f"Message scheduled for {scheduled_time.isoformat()}."
     return "Message sent successfully."

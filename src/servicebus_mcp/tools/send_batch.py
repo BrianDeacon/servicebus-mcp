@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from azure.core.exceptions import HttpResponseError
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.exceptions import MessageSizeExceededError, ServiceBusError
@@ -10,15 +12,21 @@ def send_batch(
     queue: str,
     messages: list[dict],
 ) -> str:
-    service_bus_messages = [
-        ServiceBusMessage(
+    service_bus_messages = []
+    for m in messages:
+        scheduled_time = None
+        if raw_time := m.get("scheduled_enqueue_time"):
+            try:
+                scheduled_time = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))
+            except ValueError:
+                return f"Invalid scheduled_enqueue_time format in message: '{raw_time}'. Use ISO 8601, e.g. '2026-03-05T10:00:00Z'."
+        service_bus_messages.append(ServiceBusMessage(
             m["body"],
             session_id=m.get("session_id"),
             correlation_id=m.get("correlation_id"),
             application_properties=m.get("application_properties") or {},
-        )
-        for m in messages
-    ]
+            scheduled_enqueue_time_utc=scheduled_time,
+        ))
 
     try:
         client = get_client(namespace)

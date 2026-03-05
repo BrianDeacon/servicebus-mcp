@@ -126,8 +126,9 @@ Send a single message to a queue or topic.
 | `session_id` | string | no | Required for session-enabled queues |
 | `correlation_id` | string | no | Correlation ID to set on the message |
 | `application_properties` | object | no | Key/value map of custom message properties |
+| `scheduled_enqueue_time` | string | no | ISO 8601 datetime to enqueue the message (e.g. `2026-03-05T10:00:00Z`). If omitted, the message is sent immediately. |
 
-Returns a success message confirming the message was sent.
+Returns a success message confirming the message was sent or scheduled.
 
 ### `servicebus_send_batch`
 
@@ -137,7 +138,7 @@ Send multiple messages in a single batch. Useful for seeding test data.
 |-----------|------|----------|-------------|
 | `namespace` | string | yes | Service Bus namespace |
 | `queue` | string | yes | Queue or topic name |
-| `messages` | array | yes | Array of message objects, each with `body` (required), `session_id`, `correlation_id`, and `application_properties` (all optional) |
+| `messages` | array | yes | Array of message objects, each with `body` (required), `session_id`, `correlation_id`, `application_properties`, and `scheduled_enqueue_time` (all optional) |
 
 ### `servicebus_peek_messages`
 
@@ -164,6 +165,29 @@ Same as `servicebus_peek_messages` but writes message bodies to a file. Only met
 | `max_count` | integer | no | Max messages to return (default 10, max 100) |
 | `session_id` | string | no | Peek within a specific session |
 
+### `servicebus_peek_dlq`
+
+Non-destructively peek at messages in a queue's dead letter queue.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | yes | Service Bus namespace |
+| `queue` | string | yes | Queue name |
+| `max_count` | integer | no | Max messages to return (default 10, max 100) |
+
+Returns message bodies, dead letter reason, error description, and other metadata.
+
+### `servicebus_peek_dlq_to_file`
+
+Same as `servicebus_peek_dlq` but writes message bodies to a file.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | yes | Service Bus namespace |
+| `queue` | string | yes | Queue name |
+| `output_file` | string | yes | Path to write message bodies as JSON |
+| `max_count` | integer | no | Max messages to return (default 10, max 100) |
+
 ### `servicebus_purge_queue`
 
 Delete all messages from a queue. This is destructive and cannot be undone.
@@ -173,6 +197,26 @@ Delete all messages from a queue. This is destructive and cannot be undone.
 | `namespace` | string | yes | Service Bus namespace |
 | `queue` | string | yes | Queue name |
 | `max_messages` | integer | no | Safety cap — stops and leaves remaining messages untouched if the running total exceeds this (default 1000) |
+
+### `servicebus_purge_dlq`
+
+Delete all messages from a queue's dead letter queue. This is destructive and cannot be undone.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | yes | Service Bus namespace |
+| `queue` | string | yes | Queue name |
+| `max_messages` | integer | no | Safety cap — stops and leaves remaining messages untouched if the running total exceeds this (default 1000) |
+
+### `servicebus_requeue_dlq`
+
+Move messages from a queue's dead letter queue back to the main queue. Preserves body, session ID, correlation ID, and application properties.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | yes | Service Bus namespace |
+| `queue` | string | yes | Queue name |
+| `max_messages` | integer | no | Stops if the running total would exceed this (default 100) |
 
 ### `servicebus_peek_subscription_messages`
 
@@ -197,6 +241,29 @@ Same as `servicebus_peek_subscription_messages` but writes message bodies to a f
 | `output_file` | string | yes | Path to write message bodies as JSON |
 | `max_count` | integer | no | Max messages to return (default 10, max 100) |
 
+### `servicebus_peek_subscription_dlq`
+
+Non-destructively peek at messages in a topic subscription's dead letter queue.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | yes | Service Bus namespace |
+| `topic` | string | yes | Topic name |
+| `subscription` | string | yes | Subscription name |
+| `max_count` | integer | no | Max messages to return (default 10, max 100) |
+
+### `servicebus_peek_subscription_dlq_to_file`
+
+Same as `servicebus_peek_subscription_dlq` but writes message bodies to a file.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | yes | Service Bus namespace |
+| `topic` | string | yes | Topic name |
+| `subscription` | string | yes | Subscription name |
+| `output_file` | string | yes | Path to write message bodies as JSON |
+| `max_count` | integer | no | Max messages to return (default 10, max 100) |
+
 ### `servicebus_purge_subscription`
 
 Delete all messages from a topic subscription. This is destructive and cannot be undone.
@@ -208,7 +275,29 @@ Delete all messages from a topic subscription. This is destructive and cannot be
 | `subscription` | string | yes | Subscription name |
 | `max_messages` | integer | no | Safety cap — stops and leaves remaining messages untouched if the running total exceeds this (default 1000) |
 
+### `servicebus_purge_subscription_dlq`
+
+Delete all messages from a topic subscription's dead letter queue. This is destructive and cannot be undone.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | yes | Service Bus namespace |
+| `topic` | string | yes | Topic name |
+| `subscription` | string | yes | Subscription name |
+| `max_messages` | integer | no | Safety cap — stops and leaves remaining messages untouched if the running total exceeds this (default 1000) |
+
+### `servicebus_requeue_subscription_dlq`
+
+Move messages from a topic subscription's dead letter queue back to the topic. Preserves body, session ID, correlation ID, and application properties.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | yes | Service Bus namespace |
+| `topic` | string | yes | Topic name |
+| `subscription` | string | yes | Subscription name |
+| `max_messages` | integer | no | Stops if the running total would exceed this (default 100) |
+
 ## Security
 
 - This server only accepts `DefaultAzureCredential` — connection strings and SAS keys are never passed as arguments, ensuring secrets do not appear in conversation history.
-- `purge_queue` and `purge_subscription` enforce a `max_messages` safety cap to prevent accidental destruction of large backlogs.
+- `purge_*` and `requeue_*` tools enforce a `max_messages` safety cap to prevent accidental bulk operations on large backlogs.
