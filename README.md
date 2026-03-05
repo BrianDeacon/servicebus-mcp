@@ -8,12 +8,13 @@ Authentication uses `DefaultAzureCredential`, which picks up an active `az login
 
 ## Requirements
 
-- Python 3.10+
 - [uv](https://docs.astral.sh/uv/)
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) with an active `az login` session
 - Your identity must have the **Azure Service Bus Data Owner** or **Azure Service Bus Data Receiver/Sender** roles on the target namespace
 
 ## Installation
+
+Install `uv` if you don't have it:
 
 ### macOS
 
@@ -37,7 +38,32 @@ winget install --id=astral-sh.uv
 winget install --id=Microsoft.AzureCLI
 ```
 
-### All platforms
+## Configuration
+
+**Claude Code** users:
+
+```bash
+claude mcp add --scope user azure-service-bus -- uvx servicebus-mcp
+```
+
+For other MCP clients, add the following to your server configuration:
+
+```json
+{
+  "mcpServers": {
+    "azure-service-bus": {
+      "command": "uvx",
+      "args": ["servicebus-mcp"]
+    }
+  }
+}
+```
+
+Restart your MCP client after adding the server. No environment variables are required if you are authenticated with `az login`. If `AZURE_SUBSCRIPTION_ID` is set it will be used automatically.
+
+### Installing from source
+
+If you prefer to run from a local clone:
 
 ```bash
 git clone https://github.com/BrianDeacon/servicebus-mcp
@@ -46,15 +72,12 @@ uv sync
 az login
 ```
 
-## Configuration
-
-Add the following to your MCP client's server configuration, adjusting the path to wherever you cloned the repo:
+Then configure with the cloned path:
 
 ```json
 {
   "mcpServers": {
     "azure-service-bus": {
-      "type": "stdio",
       "command": "uv",
       "args": ["run", "--directory", "/path/to/servicebus-mcp", "servicebus-mcp"]
     }
@@ -62,13 +85,7 @@ Add the following to your MCP client's server configuration, adjusting the path 
 }
 ```
 
-**Claude Code** users can add it via the CLI instead:
-
-```bash
-claude mcp add --scope user azure-service-bus -- uv run --directory /path/to/servicebus-mcp servicebus-mcp
-```
-
-Restart your MCP client after adding the server. No environment variables are needed — auth is handled by your existing `az login` credential.
+Restart your MCP client after adding the server. No environment variables are required if you are authenticated with `az login`. If `AZURE_SUBSCRIPTION_ID` is set it will be used automatically.
 
 ## Tools
 
@@ -112,11 +129,11 @@ Send a single message to a queue or topic.
 | `correlation_id` | string | no | Correlation ID to set on the message |
 | `application_properties` | object | no | Key/value map of custom message properties |
 
-Returns a success message including the sequence number assigned by Service Bus.
+Returns a success message confirming the message was sent.
 
 ### `servicebus_send_batch`
 
-Send multiple messages in a single atomic batch. Useful for seeding test data.
+Send multiple messages in a single batch. Useful for seeding test data.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -159,7 +176,6 @@ Delete all messages from a queue. This is destructive and cannot be undone.
 | `queue` | string | yes | Queue name |
 | `max_messages` | integer | no | Safety cap — refuses to purge if message count exceeds this (default 1000) |
 
-A warning is appended to the response when targeting a production namespace.
 
 ### `servicebus_peek_subscription_messages`
 
@@ -199,4 +215,3 @@ Delete all messages from a topic subscription. This is destructive and cannot be
 
 - This server only accepts `DefaultAzureCredential` — connection strings and SAS keys are never passed as arguments, ensuring secrets do not appear in conversation history.
 - `purge_queue` and `purge_subscription` enforce a `max_messages` safety cap to prevent accidental destruction of large backlogs.
-- A warning is included in responses when a production namespace is targeted.

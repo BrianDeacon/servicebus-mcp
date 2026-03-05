@@ -10,8 +10,6 @@ def purge_subscription(
     subscription: str,
     max_messages: int = 1000,
 ) -> str:
-    is_prod = "dco1" in namespace
-
     try:
         client = get_client(namespace)
         with client.get_subscription_receiver(topic, subscription) as receiver:
@@ -39,5 +37,4 @@ def purge_subscription(
     except ServiceBusError as e:
         return f"Service Bus error: {e}"
 
-    warning = " WARNING: this was a production namespace." if is_prod else ""
-    return f"Purged {count} messages from subscription '{subscription}' on topic '{topic}'.{warning}"
+    return f"Purged {count} messages from subscription '{subscription}' on topic '{topic}'."

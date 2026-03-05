@@ -83,7 +83,7 @@ def servicebus_send_batch(
       - correlation_id (string, optional)
       - application_properties (object, optional): key/value map of custom properties
 
-    The entire batch is delivered atomically. Useful for seeding test data.
+    The entire batch is delivered in a single send operation. Useful for seeding test data.
     """
     return send_batch(namespace, queue, messages)
 
@@ -133,7 +133,6 @@ def servicebus_purge_queue(
     THIS IS DESTRUCTIVE — messages cannot be recovered after purging.
     Will refuse to purge if the message count exceeds max_messages (default 1000)
     as a safety cap against accidentally purging queues with large backlogs.
-    A warning is appended to the response for production namespaces (dco1).
     """
     return purge_queue(namespace, queue, max_messages)
 
@@ -184,7 +183,6 @@ def servicebus_purge_subscription(
     THIS IS DESTRUCTIVE — messages cannot be recovered after purging.
     Will refuse to purge if the message count exceeds max_messages (default 1000)
     as a safety cap against accidentally purging subscriptions with large backlogs.
-    A warning is appended to the response for production namespaces (dco1).
     """
     return purge_subscription(namespace, topic, subscription, max_messages)
 

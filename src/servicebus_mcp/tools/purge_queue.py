@@ -9,8 +9,6 @@ def purge_queue(
     queue: str,
     max_messages: int = 1000,
 ) -> str:
-    is_prod = "dco1" in namespace
-
     try:
         client = get_client(namespace)
         with client.get_queue_receiver(queue) as receiver:
@@ -37,5 +35,4 @@ def purge_queue(
     except ServiceBusError as e:
         return f"Service Bus error: {e}"
 
-    warning = " WARNING: this was a production namespace." if is_prod else ""
-    return f"Purged {count} messages from '{queue}'.{warning}"
+    return f"Purged {count} messages from '{queue}'."
