@@ -2,10 +2,27 @@ import json
 from pathlib import Path
 
 from azure.core.exceptions import HttpResponseError
-from azure.servicebus.exceptions import ServiceBusError
+from azure.servicebus.exceptions import OperationTimeoutError, ServiceBusError
 
 from servicebus_mcp.client import get_client
 from servicebus_mcp.tools.utils import decode_body, decode_properties
+
+
+def _do_peek(client, topic, subscription, max_count, session_id):
+    if session_id is not None:
+        with client.get_subscription_receiver(topic, subscription, session_id=session_id) as receiver:
+            return receiver.peek_messages(max_message_count=max_count)
+
+    try:
+        with client.get_subscription_receiver(topic, subscription) as receiver:
+            return receiver.peek_messages(max_message_count=max_count)
+    except ServiceBusError as e:
+        if "non-sessionful" in str(e):
+            with client.accept_next_session(
+                topic_name=topic, subscription_name=subscription, max_wait_time=10
+            ) as receiver:
+                return receiver.peek_messages(max_message_count=max_count)
+        raise
 
 
 def peek_subscription_messages(
@@ -13,6 +30,7 @@ def peek_subscription_messages(
     topic: str,
     subscription: str,
     max_count: int = 10,
+    session_id: str | None = None,
     save_bodies_to: str | None = None,
 ) -> str:
     if max_count > 100:
@@ -20,8 +38,9 @@ def peek_subscription_messages(
 
     try:
         client = get_client(namespace)
-        with client.get_subscription_receiver(topic, subscription) as receiver:
-            peeked = receiver.peek_messages(max_message_count=max_count)
+        peeked = _do_peek(client, topic, subscription, max_count, session_id)
+    except OperationTimeoutError:
+        return f"Timed out waiting for an available session in subscription '{subscription}'."
     except HttpResponseError as e:
         return f"Azure returned an error: {e.message}"
     except ServiceBusError as e:

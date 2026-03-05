@@ -151,7 +151,7 @@ Non-destructively peek at messages in a queue. Messages are not locked or consum
 | `namespace` | string | yes | Service Bus namespace |
 | `queue` | string | yes | Queue name |
 | `max_count` | integer | no | Max messages to return (default 10, max 100) |
-| `session_id` | string | no | Peek within a specific session |
+| `session_id` | string | no | Peek within a specific session. If omitted on a session-enabled queue, the next available session is accepted, peeked, and immediately released. The session ID is included in each returned message, so you can use it for subsequent targeted calls. |
 
 Returns message bodies and metadata (sequence number, enqueue time, properties). Use `servicebus_peek_messages_to_file` instead if message bodies may be large.
 
@@ -165,7 +165,7 @@ Same as `servicebus_peek_messages` but writes message bodies to a file. Only met
 | `queue` | string | yes | Queue name |
 | `output_file` | string | yes | Path to write message bodies as JSON |
 | `max_count` | integer | no | Max messages to return (default 10, max 100) |
-| `session_id` | string | no | Peek within a specific session |
+| `session_id` | string | no | Peek within a specific session. If omitted on a session-enabled queue, the next available session is accepted, peeked, and immediately released. |
 
 ### `servicebus_peek_dlq`
 
@@ -230,6 +230,7 @@ Non-destructively peek at messages in a topic subscription.
 | `topic` | string | yes | Topic name |
 | `subscription` | string | yes | Subscription name |
 | `max_count` | integer | no | Max messages to return (default 10, max 100) |
+| `session_id` | string | no | Peek within a specific session. If omitted on a session-enabled subscription, the next available session is accepted, peeked, and immediately released. |
 
 ### `servicebus_peek_subscription_messages_to_file`
 
@@ -242,6 +243,7 @@ Same as `servicebus_peek_subscription_messages` but writes message bodies to a f
 | `subscription` | string | yes | Subscription name |
 | `output_file` | string | yes | Path to write message bodies as JSON |
 | `max_count` | integer | no | Max messages to return (default 10, max 100) |
+| `session_id` | string | no | Peek within a specific session. If omitted on a session-enabled subscription, the next available session is accepted, peeked, and immediately released. |
 
 ### `servicebus_peek_subscription_dlq`
 

@@ -55,6 +55,8 @@ def servicebus_list_topics(namespace: str, include_subscriptions: bool = False) 
     return list_topics(namespace, include_subscriptions)
 
 
+
+
 @app.tool()
 def servicebus_send_message(
     namespace: str,
@@ -110,7 +112,10 @@ def servicebus_peek_messages(
 
     Messages are not locked or consumed — this is a read-only operation.
     Returns message bodies and metadata (sequence number, enqueue time, properties).
-    max_count is capped at 100. For session-enabled queues, provide a session_id.
+    max_count is capped at 100.
+    For session-enabled queues, provide a session_id to peek a specific session.
+    If session_id is omitted on a session-enabled queue, the next available session
+    is accepted, peeked, and immediately released.
     Use servicebus_peek_messages_to_file instead if message bodies may be large.
     """
     return peek_messages(namespace, queue, max_count, session_id)
@@ -129,6 +134,9 @@ def servicebus_peek_messages_to_file(
     Message bodies are written to output_file as JSON (keyed by sequence number).
     Only metadata (sequence number, enqueue time, properties) is returned in context —
     use this variant when message bodies may be large to avoid filling the context window.
+    For session-enabled queues, provide a session_id to peek a specific session.
+    If session_id is omitted on a session-enabled queue, the next available session
+    is accepted, peeked, and immediately released.
     """
     return peek_messages(namespace, queue, max_count, session_id, save_bodies_to=output_file)
 
@@ -213,15 +221,19 @@ def servicebus_peek_subscription_messages(
     topic: str,
     subscription: str,
     max_count: int = 10,
+    session_id: str | None = None,
 ) -> str:
     """Non-destructively peek at messages in an Azure Service Bus topic subscription.
 
     Messages are not locked or consumed — this is a read-only operation.
     Returns message bodies and metadata (sequence number, enqueue time, properties).
     max_count is capped at 100.
+    For session-enabled subscriptions, provide a session_id to peek a specific session.
+    If session_id is omitted on a session-enabled subscription, the next available session
+    is accepted, peeked, and immediately released.
     Use servicebus_peek_subscription_messages_to_file instead if message bodies may be large.
     """
-    return peek_subscription_messages(namespace, topic, subscription, max_count)
+    return peek_subscription_messages(namespace, topic, subscription, max_count, session_id)
 
 
 @app.tool()
@@ -231,14 +243,18 @@ def servicebus_peek_subscription_messages_to_file(
     subscription: str,
     output_file: str,
     max_count: int = 10,
+    session_id: str | None = None,
 ) -> str:
     """Non-destructively peek at messages in an Azure Service Bus topic subscription, saving bodies to a file.
 
     Message bodies are written to output_file as JSON (keyed by sequence number).
     Only metadata (sequence number, enqueue time, properties) is returned in context —
     use this variant when message bodies may be large to avoid filling the context window.
+    For session-enabled subscriptions, provide a session_id to peek a specific session.
+    If session_id is omitted on a session-enabled subscription, the next available session
+    is accepted, peeked, and immediately released.
     """
-    return peek_subscription_messages(namespace, topic, subscription, max_count, save_bodies_to=output_file)
+    return peek_subscription_messages(namespace, topic, subscription, max_count, session_id, save_bodies_to=output_file)
 
 
 @app.tool()

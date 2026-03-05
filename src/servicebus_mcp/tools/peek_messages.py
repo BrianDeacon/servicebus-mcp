@@ -2,10 +2,25 @@ import json
 from pathlib import Path
 
 from azure.core.exceptions import HttpResponseError
-from azure.servicebus.exceptions import ServiceBusError
+from azure.servicebus.exceptions import OperationTimeoutError, ServiceBusError
 
 from servicebus_mcp.client import get_client
 from servicebus_mcp.tools.utils import decode_body, decode_properties
+
+
+def _do_peek(client, queue, max_count, session_id):
+    if session_id is not None:
+        with client.get_queue_receiver(queue, session_id=session_id) as receiver:
+            return receiver.peek_messages(max_message_count=max_count)
+
+    try:
+        with client.get_queue_receiver(queue) as receiver:
+            return receiver.peek_messages(max_message_count=max_count)
+    except ServiceBusError as e:
+        if "non-sessionful" in str(e):
+            with client.accept_next_session(queue=queue, max_wait_time=10) as receiver:
+                return receiver.peek_messages(max_message_count=max_count)
+        raise
 
 
 def peek_messages(
@@ -20,8 +35,9 @@ def peek_messages(
 
     try:
         client = get_client(namespace)
-        with client.get_queue_receiver(queue, session_id=session_id) as receiver:
-            peeked = receiver.peek_messages(max_message_count=max_count)
+        peeked = _do_peek(client, queue, max_count, session_id)
+    except OperationTimeoutError:
+        return f"Timed out waiting for an available session in '{queue}'."
     except HttpResponseError as e:
         return f"Azure returned an error: {e.message}"
     except ServiceBusError as e:
