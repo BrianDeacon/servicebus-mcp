@@ -4,12 +4,12 @@ An MCP (Model Context Protocol) server for Azure Service Bus. Compatible with an
 
 Exposes tools for sending messages, inspecting queue and subscription contents, and purging test data. The built-in Azure MCP server that ships with Claude Code only supports read operations (queue details, message counts, etc.) and cannot send messages — this project fills that gap.
 
-Authentication uses `DefaultAzureCredential`, which picks up an active `az login` session automatically. No secrets or connection strings are ever passed as tool arguments.
+Authentication uses `DefaultAzureCredential`, which picks up an active `az login` session automatically. Alternatively, a connection string can be provided via the `AZURE_SERVICEBUS_CONNECTION_STRING` environment variable. No secrets or connection strings are ever passed as tool arguments.
 
 ## Requirements
 
 - [uv](https://docs.astral.sh/uv/)
-- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) with an active `az login` session
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) with an active `az login` session, or `AZURE_SERVICEBUS_CONNECTION_STRING` set in your environment
 - Your identity must have the **Azure Service Bus Data Owner** or **Azure Service Bus Data Receiver/Sender** roles on the target namespace
 
 ## Installation
@@ -59,7 +59,9 @@ For other MCP clients, add the following to your server configuration:
 }
 ```
 
-Restart your MCP client after adding the server. No environment variables are required if you are authenticated with `az login`. If `AZURE_SUBSCRIPTION_ID` is set it will be used automatically.
+Restart your MCP client after adding the server. No environment variables are required if you are authenticated with `az login`. Optional env vars:
+- `AZURE_SUBSCRIPTION_ID` — used by `servicebus_list_namespaces` if set
+- `AZURE_SERVICEBUS_CONNECTION_STRING` — use instead of `az login` for data plane operations (send, peek, purge)
 
 ### Installing from source
 

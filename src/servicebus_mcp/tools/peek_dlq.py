@@ -6,6 +6,7 @@ from azure.servicebus import ServiceBusSubQueue
 from azure.servicebus.exceptions import ServiceBusError
 
 from servicebus_mcp.client import get_client
+from servicebus_mcp.tools.utils import decode_body, decode_properties
 
 
 def peek_dlq(
@@ -30,7 +31,7 @@ def peek_dlq(
         return f"No messages found in dead letter queue for '{queue}'."
 
     if save_bodies_to:
-        bodies = [{"sequence_number": msg.sequence_number, "body": msg.body} for msg in peeked]
+        bodies = [{"sequence_number": msg.sequence_number, "body": decode_body(msg)} for msg in peeked]
         Path(save_bodies_to).write_text(json.dumps(bodies, indent=2, default=str))
 
     results = [
@@ -41,8 +42,8 @@ def peek_dlq(
             "dead_letter_error_description": msg.dead_letter_error_description,
             "session_id": msg.session_id,
             "correlation_id": msg.correlation_id,
-            "application_properties": msg.application_properties,
-            **({"body": msg.body} if not save_bodies_to else {}),
+            "application_properties": decode_properties(msg.application_properties),
+            **({"body": decode_body(msg)} if not save_bodies_to else {}),
         }
         for msg in peeked
     ]

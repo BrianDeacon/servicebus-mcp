@@ -13,6 +13,12 @@ _mgmt_client: ServiceBusManagementClient | None = None
 _subscription_id: str | None = None
 
 
+def _normalize_namespace(namespace: str) -> str:
+    if not namespace.endswith(".servicebus.windows.net"):
+        namespace = f"{namespace}.servicebus.windows.net"
+    return namespace
+
+
 def get_subscription_id() -> str:
     global _subscription_id
     if _subscription_id:
@@ -43,14 +49,17 @@ def get_subscription_id() -> str:
 
 
 def get_client(namespace: str) -> ServiceBusClient:
-    if not namespace.endswith(".servicebus.windows.net"):
-        namespace = f"{namespace}.servicebus.windows.net"
+    namespace = _normalize_namespace(namespace)
 
     if namespace not in _clients:
-        _clients[namespace] = ServiceBusClient(
-            fully_qualified_namespace=namespace,
-            credential=_credential,
-        )
+        conn_str = os.environ.get("AZURE_SERVICEBUS_CONNECTION_STRING")
+        if conn_str:
+            _clients[namespace] = ServiceBusClient.from_connection_string(conn_str)
+        else:
+            _clients[namespace] = ServiceBusClient(
+                fully_qualified_namespace=namespace,
+                credential=_credential,
+            )
 
     return _clients[namespace]
 
@@ -66,13 +75,16 @@ def get_mgmt_client() -> ServiceBusManagementClient:
 
 
 def get_admin_client(namespace: str) -> ServiceBusAdministrationClient:
-    if not namespace.endswith(".servicebus.windows.net"):
-        namespace = f"{namespace}.servicebus.windows.net"
+    namespace = _normalize_namespace(namespace)
 
     if namespace not in _admin_clients:
-        _admin_clients[namespace] = ServiceBusAdministrationClient(
-            fully_qualified_namespace=namespace,
-            credential=_credential,
-        )
+        conn_str = os.environ.get("AZURE_SERVICEBUS_CONNECTION_STRING")
+        if conn_str:
+            _admin_clients[namespace] = ServiceBusAdministrationClient.from_connection_string(conn_str)
+        else:
+            _admin_clients[namespace] = ServiceBusAdministrationClient(
+                fully_qualified_namespace=namespace,
+                credential=_credential,
+            )
 
     return _admin_clients[namespace]
