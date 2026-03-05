@@ -1,5 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 
+from servicebus_mcp.tools.list_namespaces import list_namespaces
 from servicebus_mcp.tools.list_queues import list_queues
 from servicebus_mcp.tools.list_topics import list_topics
 from servicebus_mcp.tools.peek_messages import peek_messages
@@ -10,6 +11,17 @@ from servicebus_mcp.tools.send_batch import send_batch
 from servicebus_mcp.tools.send_message import send_message
 
 app = FastMCP("servicebus-mcp")
+
+
+@app.tool()
+def servicebus_list_namespaces() -> str:
+    """List all Azure Service Bus namespaces in the current subscription.
+
+    The subscription is resolved automatically — first from the AZURE_SUBSCRIPTION_ID
+    environment variable, then from the active 'az login' session. If neither is
+    available, an error is returned with instructions.
+    """
+    return list_namespaces()
 
 
 @app.tool()

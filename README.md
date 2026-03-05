@@ -74,6 +74,12 @@ Restart your MCP client after adding the server. No environment variables are ne
 
 The namespace parameter accepts either a short name (`my-namespace`) or a fully qualified hostname (`my-namespace.servicebus.windows.net`). The `.servicebus.windows.net` suffix is appended automatically if absent.
 
+### `servicebus_list_namespaces`
+
+List all Service Bus namespaces in the current Azure subscription.
+
+The subscription is resolved automatically — first from the `AZURE_SUBSCRIPTION_ID` environment variable, then from the active `az login` session. No parameters required.
+
 ### `servicebus_list_queues`
 
 List all queues in a Service Bus namespace.
