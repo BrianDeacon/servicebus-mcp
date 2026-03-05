@@ -31,7 +31,4 @@ def send_message(
     except ServiceBusError as e:
         return f"Service Bus error: {e}"
 
-    seq = message.sequence_number
-    if seq is not None:
-        return f"Message sent successfully. Sequence number: {seq}"
     return "Message sent successfully."

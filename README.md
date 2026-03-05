@@ -85,7 +85,7 @@ Then configure with the cloned path:
 }
 ```
 
-Restart your MCP client after adding the server. No environment variables are required if you are authenticated with `az login`. If `AZURE_SUBSCRIPTION_ID` is set it will be used automatically.
+Restart your MCP client after adding the server.
 
 ## Tools
 
@@ -93,9 +93,7 @@ The namespace parameter accepts either a short name (`my-namespace`) or a fully 
 
 ### `servicebus_list_namespaces`
 
-List all Service Bus namespaces in the current Azure subscription.
-
-The subscription is resolved automatically — first from the `AZURE_SUBSCRIPTION_ID` environment variable, then from the active `az login` session. No parameters required.
+List all Service Bus namespaces in the current Azure subscription. The subscription is resolved automatically — first from the `AZURE_SUBSCRIPTION_ID` environment variable, then from the active `az login` session.
 
 ### `servicebus_list_queues`
 
@@ -174,8 +172,7 @@ Delete all messages from a queue. This is destructive and cannot be undone.
 |-----------|------|----------|-------------|
 | `namespace` | string | yes | Service Bus namespace |
 | `queue` | string | yes | Queue name |
-| `max_messages` | integer | no | Safety cap — refuses to purge if message count exceeds this (default 1000) |
-
+| `max_messages` | integer | no | Safety cap — stops and leaves remaining messages untouched if the running total exceeds this (default 1000) |
 
 ### `servicebus_peek_subscription_messages`
 
@@ -209,7 +206,7 @@ Delete all messages from a topic subscription. This is destructive and cannot be
 | `namespace` | string | yes | Service Bus namespace |
 | `topic` | string | yes | Topic name |
 | `subscription` | string | yes | Subscription name |
-| `max_messages` | integer | no | Safety cap — refuses to purge if message count exceeds this (default 1000) |
+| `max_messages` | integer | no | Safety cap — stops and leaves remaining messages untouched if the running total exceeds this (default 1000) |
 
 ## Security
 

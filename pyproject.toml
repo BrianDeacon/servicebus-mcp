@@ -22,7 +22,6 @@ servicebus-mcp = "servicebus_mcp.server:main"
 [tool.uv]
 package = true
 
-[tool.uv.sources]
 
 [build-system]
 requires = ["hatchling"]

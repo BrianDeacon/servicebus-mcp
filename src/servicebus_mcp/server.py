@@ -131,8 +131,7 @@ def servicebus_purge_queue(
     """Delete all messages from an Azure Service Bus queue.
 
     THIS IS DESTRUCTIVE — messages cannot be recovered after purging.
-    Will refuse to purge if the message count exceeds max_messages (default 1000)
-    as a safety cap against accidentally purging queues with large backlogs.
+    Stops and leaves remaining messages untouched if the running total exceeds max_messages.
     """
     return purge_queue(namespace, queue, max_messages)
 
@@ -181,8 +180,7 @@ def servicebus_purge_subscription(
     """Delete all messages from an Azure Service Bus topic subscription.
 
     THIS IS DESTRUCTIVE — messages cannot be recovered after purging.
-    Will refuse to purge if the message count exceeds max_messages (default 1000)
-    as a safety cap against accidentally purging subscriptions with large backlogs.
+    Stops and leaves remaining messages untouched if the running total exceeds max_messages.
     """
     return purge_subscription(namespace, topic, subscription, max_messages)
 
