@@ -5,7 +5,7 @@ from azure.core.exceptions import HttpResponseError
 from azure.servicebus import NEXT_AVAILABLE_SESSION
 from azure.servicebus.exceptions import OperationTimeoutError, ServiceBusError
 
-from servicebus_mcp.client import get_client
+from servicebus_mcp.client import get_admin_client, get_client
 from servicebus_mcp.tools.utils import decode_body, decode_properties
 
 
@@ -36,6 +36,10 @@ def peek_subscription_messages(
         max_count = 100
 
     try:
+        if session_id is None:
+            props = get_admin_client(namespace).get_subscription_runtime_properties(topic, subscription)
+            if props.active_message_count == 0:
+                return f"No messages found in subscription '{subscription}' on topic '{topic}'."
         client = get_client(namespace)
         peeked = _do_peek(client, topic, subscription, max_count, session_id)
     except OperationTimeoutError:
