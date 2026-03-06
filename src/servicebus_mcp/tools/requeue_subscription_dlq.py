@@ -19,7 +19,7 @@ def requeue_subscription_dlq(
                 return f"Dead letter queue for subscription '{subscription}' on topic '{topic}' is already empty."
 
             count = 0
-            with client.get_queue_or_topic_sender(topic) as sender:
+            with client.get_topic_sender(topic) as sender:
                 while True:
                     messages = receiver.receive_messages(max_message_count=10, max_wait_time=5)
                     if not messages:

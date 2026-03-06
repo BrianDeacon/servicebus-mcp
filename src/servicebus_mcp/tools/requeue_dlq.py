@@ -18,7 +18,7 @@ def requeue_dlq(
                 return f"Dead letter queue for '{queue}' is already empty."
 
             count = 0
-            with client.get_queue_or_topic_sender(queue) as sender:
+            with client.get_queue_sender(queue) as sender:
                 while True:
                     messages = receiver.receive_messages(max_message_count=10, max_wait_time=5)
                     if not messages:
