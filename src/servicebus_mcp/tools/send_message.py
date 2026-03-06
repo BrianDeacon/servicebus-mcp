@@ -32,7 +32,7 @@ def send_message(
 
     try:
         client = get_client(namespace)
-        with client.get_queue_or_topic_sender(queue) as sender:
+        with client.get_queue_sender(queue) as sender:
             sender.send_messages(message)
     except MessageSizeExceededError:
         return f"Message body is too large for queue '{queue}'."

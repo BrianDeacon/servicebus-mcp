@@ -30,7 +30,7 @@ def send_batch(
 
     try:
         client = get_client(namespace)
-        with client.get_queue_or_topic_sender(queue) as sender:
+        with client.get_queue_sender(queue) as sender:
             batch = sender.create_message_batch()
             for msg in service_bus_messages:
                 batch.add_message(msg)
